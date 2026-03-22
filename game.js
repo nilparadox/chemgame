@@ -17,9 +17,6 @@ const celebrationEl = document.getElementById("celebration");
 const interactBtn = document.getElementById("interact-btn");
 const toastEl = document.getElementById("floating-toast");
 
-const joystickBase = document.getElementById("joystick-base");
-const joystickStick = document.getElementById("joystick-stick");
-
 const W = canvas.width;
 const H = canvas.height;
 const WORLD_TOP = 120;
@@ -50,7 +47,6 @@ const COLORS = {
   furnaceBody: "#6c4526",
   smoke: "rgba(170,170,180,0.58)",
   spark: "#f4d17a",
-  glow: "#f0a233",
   treatment: "#717887",
   treatmentInner: "#c7d2e3",
   player: "#5d79d0",
@@ -64,25 +60,11 @@ const COLORS = {
   waterClean: "#68b6ff"
 };
 
-function safeText(el, text) {
-  if (el) el.textContent = text;
-}
-
-function safeHTML(el, html) {
-  if (el) el.innerHTML = html;
-}
-
-function safeAddClass(el, cls) {
-  if (el) el.classList.add(cls);
-}
-
-function safeRemoveClass(el, cls) {
-  if (el) el.classList.remove(cls);
-}
-
-function safeToggleClass(el, cls, force) {
-  if (el) el.classList.toggle(cls, force);
-}
+function safeText(el, text) { if (el) el.textContent = text; }
+function safeHTML(el, html) { if (el) el.innerHTML = html; }
+function addHidden(el) { if (el) el.classList.add("hidden"); }
+function removeHidden(el) { if (el) el.classList.remove("hidden"); }
+function toggleHidden(el, hide) { if (el) el.classList.toggle("hidden", hide); }
 
 const state = {
   step: 0,
@@ -94,10 +76,12 @@ const state = {
   sulfurCollected: false,
   acidRecovered: false,
   coagulantKnown: false,
-  stabilizerKnown: false
+  stabilizerKnown: false,
+  tapTarget: null,
+  dialogueOpen: true
 };
 
-const player = { x: 120, y: 470, w: 28, h: 40, speed: 3.7 };
+const player = { x: 120, y: 470, w: 28, h: 40, speed: 3.1 };
 const elder = { x: 610, y: 285, w: 32, h: 44, name: "Elder" };
 const apprentice = { x: 470, y: 330, w: 28, h: 38, name: "Apprentice" };
 const blacksmith = { x: 545, y: 266, w: 32, h: 44, name: "Blacksmith" };
@@ -108,12 +92,10 @@ const spring = { x: 168, y: 186, rx: 130, ry: 72 };
 
 let tick = 0;
 let keys = {};
-let moveVec = { x: 0, y: 0 };
-let joystickActive = false;
 
 let dialogueLines = [
   "Ironford's spring has turned black and corrosive.",
-  "Talk to the villagers, reconstruct the lost chemistry, and save the village."
+  "Tap the world to move. Talk to villagers, reconstruct the lost chemistry, and save the village."
 ];
 
 let notebookLines = [
@@ -177,6 +159,7 @@ function setDialogue(speaker, lines) {
   safeText(speakerEl, speaker);
   dialogueLines = Array.isArray(lines) ? lines : [lines];
   safeText(dialogueEl, dialogueLines.join("\n\n"));
+  state.dialogueOpen = true;
 }
 
 function setQuest(text) {
@@ -190,41 +173,40 @@ function addNotebook(text) {
 
 function showToast(text) {
   safeText(toastEl, text);
-  safeRemoveClass(toastEl, "hidden");
+  removeHidden(toastEl);
   clearTimeout(showToast._timer);
-  showToast._timer = setTimeout(() => safeAddClass(toastEl, "hidden"), 1600);
+  showToast._timer = setTimeout(() => addHidden(toastEl), 1600);
 }
 
 function showHint(text) {
-  safeRemoveClass(hintPanel, "hidden");
+  removeHidden(hintPanel);
   safeText(hintText, text);
 }
 
 function hideHint() {
-  safeAddClass(hintPanel, "hidden");
+  addHidden(hintPanel);
 }
 
 function showQuestion(q) {
   state.activeQuestion = q;
   safeHTML(questionTitle, q.title);
   safeHTML(questionSubtitle, q.subtitle);
-  if (!questionOptions) return;
-  questionOptions.innerHTML = "";
-
-  q.options.forEach((opt, i) => {
-    const card = document.createElement("div");
-    card.className = "option-card";
-    card.innerHTML = `${i + 1}. ${opt}`;
-    card.addEventListener("click", () => answerQuestion(i));
-    questionOptions.appendChild(card);
-  });
-
-  safeRemoveClass(questionModal, "hidden");
+  if (questionOptions) {
+    questionOptions.innerHTML = "";
+    q.options.forEach((opt, i) => {
+      const card = document.createElement("div");
+      card.className = "option-card";
+      card.innerHTML = `${i + 1}. ${opt}`;
+      card.addEventListener("click", () => answerQuestion(i));
+      questionOptions.appendChild(card);
+    });
+  }
+  removeHidden(questionModal);
 }
 
 function hideQuestion() {
   state.activeQuestion = null;
-  safeAddClass(questionModal, "hidden");
+  addHidden(questionModal);
 }
 
 function answerQuestion(i) {
@@ -237,7 +219,6 @@ function answerQuestion(i) {
 
 function setStep(step) {
   state.step = step;
-
   if (step === 0) setQuest("Talk to the Elder");
   else if (step === 1) setQuest("Talk to the Apprentice");
   else if (step === 2) setQuest("Talk to the Blacksmith");
@@ -277,9 +258,8 @@ function burst(x, y, color) {
 
 function startCelebration() {
   state.celebrationTimer = 220;
-  safeRemoveClass(celebrationEl, "hidden");
+  removeHidden(celebrationEl);
   state.springRestored = true;
-
   for (let i = 0; i < 90; i++) {
     celebration.push({
       x: rand(150, 1120),
@@ -324,7 +304,6 @@ function interact() {
     setDialogue("Blacksmith", [
       "Then answer carefully: what source from the mountain begins Ironford's lost acid-recovery process?"
     ]);
-
     showQuestion({
       title: "Which source material most plausibly begins Ironford's lost acid-recovery process?",
       subtitle: "Choose the source that fits the sulfur cave observations and the old furnace route.",
@@ -370,7 +349,6 @@ function interact() {
     setDialogue("Narrator", [
       "The furnace can recover the acid reagent, but the process must be controlled correctly."
     ]);
-
     showQuestion({
       title: "Which variable must be controlled most carefully during acid recovery?",
       subtitle: "Think about the roasting/heating stage needed to transform the sulfur-bearing source.",
@@ -423,7 +401,6 @@ function interact() {
     setDialogue("Narrator", [
       "The treatment house records show that sulfuric acid was not used directly on the spring. It was used to prepare a water-clearing reagent."
     ]);
-
     showQuestion({
       title: "Which second-stage treatment chemical most plausibly served as Ironford's coagulant?",
       subtitle: "Choose the substance most associated with clearing suspended impurities from contaminated water.",
@@ -457,7 +434,6 @@ function interact() {
     setDialogue("Narrator", [
       "After coagulation, the treated water still needs mineral stabilization."
     ]);
-
     showQuestion({
       title: "Which mineral should be used to stabilize the treated water?",
       subtitle: "Choose the mineral that helps rebalance final chemistry after treatment.",
@@ -742,7 +718,7 @@ function drawPerson(e, color, marker = false) {
 }
 
 function drawPlayer() {
-  const moving = Math.abs(moveVec.x) + Math.abs(moveVec.y) > 0.02 || keys["ArrowLeft"] || keys["ArrowRight"] || keys["ArrowUp"] || keys["ArrowDown"] || keys["a"] || keys["d"] || keys["w"] || keys["s"];
+  const moving = state.tapTarget !== null || keys["ArrowLeft"] || keys["ArrowRight"] || keys["ArrowUp"] || keys["ArrowDown"] || keys["a"] || keys["d"] || keys["w"] || keys["s"];
   const bob = moving ? Math.sin(tick * 0.22) * 3 : Math.sin(tick * 0.08) * 1.4;
   const x = player.x;
   const y = player.y + bob;
@@ -785,6 +761,10 @@ function drawWorld() {
   drawBursts();
   drawCelebrationParticles();
 
+  if (state.tapTarget) {
+    circle(state.tapTarget.x, state.tapTarget.y, 8 + Math.sin(tick * 0.2) * 2, "rgba(255,216,107,0.75)");
+  }
+
   ctx.fillStyle = "rgba(18,10,0,0.05)";
   ctx.fillRect(0, 0, W, H);
 
@@ -808,30 +788,45 @@ function updateHint() {
   else hideHint();
 }
 
-function updateWorld() {
-  tick += 1;
+function movePlayer() {
+  let dx = 0;
+  let dy = 0;
 
   if (!state.activeQuestion) {
-    let dx = 0;
-    let dy = 0;
-
     if (keys["ArrowLeft"] || keys["a"] || keys["A"]) dx -= 1;
     if (keys["ArrowRight"] || keys["d"] || keys["D"]) dx += 1;
     if (keys["ArrowUp"] || keys["w"] || keys["W"]) dy -= 1;
     if (keys["ArrowDown"] || keys["s"] || keys["S"]) dy += 1;
-
-    dx += moveVec.x;
-    dy += moveVec.y;
-
-    const mag = Math.hypot(dx, dy);
-    if (mag > 1) {
-      dx /= mag;
-      dy /= mag;
-    }
-
-    player.x += dx * player.speed;
-    player.y += dy * player.speed;
   }
+
+  if (dx !== 0 || dy !== 0) {
+    state.tapTarget = null;
+    const mag = Math.hypot(dx, dy);
+    player.x += (dx / mag) * player.speed;
+    player.y += (dy / mag) * player.speed;
+    return;
+  }
+
+  if (state.tapTarget && !state.activeQuestion) {
+    const px = player.x + player.w / 2;
+    const py = player.y + player.h / 2;
+    const tx = state.tapTarget.x;
+    const ty = state.tapTarget.y;
+    const dist = Math.hypot(tx - px, ty - py);
+
+    if (dist < 8) {
+      state.tapTarget = null;
+    } else {
+      player.x += ((tx - px) / dist) * player.speed;
+      player.y += ((ty - py) / dist) * player.speed;
+    }
+  }
+}
+
+function updateWorld() {
+  tick += 1;
+
+  movePlayer();
 
   player.x = Math.max(0, Math.min(W - player.w, player.x));
   player.y = Math.max(WORLD_TOP, Math.min(WORLD_BOTTOM - player.h, player.y));
@@ -901,20 +896,12 @@ function updateWorld() {
       }
     }
   } else {
-    safeAddClass(celebrationEl, "hidden");
+    addHidden(celebrationEl);
   }
 
   if (state.shake > 0) state.shake *= 0.85;
 
   updateHint();
-}
-
-function safeAddClass(el, cls) {
-  if (el) el.classList.add(cls);
-}
-
-function safeRemoveClass(el, cls) {
-  if (el) el.classList.remove(cls);
 }
 
 function gameLoop() {
@@ -930,9 +917,7 @@ function gameLoop() {
 
 window.addEventListener("keydown", (e) => {
   keys[e.key] = true;
-
   if ((e.key === "e" || e.key === "E") && !state.activeQuestion) interact();
-
   if (state.activeQuestion) {
     if (e.key === "1") answerQuestion(0);
     if (e.key === "2") answerQuestion(1);
@@ -950,76 +935,46 @@ if (interactBtn) interactBtn.addEventListener("click", interact);
 if (notebookBtn) {
   notebookBtn.addEventListener("click", () => {
     state.notebookOpen = !state.notebookOpen;
-    if (notebookBox) notebookBox.classList.toggle("hidden", !state.notebookOpen);
+    toggleHidden(notebookBox, !state.notebookOpen);
   });
 }
 
-function pointerPos(ev) {
-  const rect = joystickBase.getBoundingClientRect();
-  return {
-    x: ev.clientX - rect.left,
-    y: ev.clientY - rect.top
+function setTapTargetFromEvent(ev) {
+  if (state.activeQuestion) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = ((ev.clientX - rect.left) / rect.width) * W;
+  const y = ((ev.clientY - rect.top) / rect.height) * H;
+  state.tapTarget = {
+    x: Math.max(0, Math.min(W, x)),
+    y: Math.max(WORLD_TOP, Math.min(WORLD_BOTTOM, y))
   };
 }
 
-function setStick(px, py) {
-  const center = { x: 60, y: 60 };
-  const dx = px - center.x;
-  const dy = py - center.y;
-  const mag = Math.hypot(dx, dy);
-  const max = 34;
-
-  let nx = dx;
-  let ny = dy;
-
-  if (mag > max) {
-    nx = (dx / mag) * max;
-    ny = (dy / mag) * max;
-  }
-
-  if (joystickStick) {
-    joystickStick.style.left = `${35 + nx}px`;
-    joystickStick.style.top = `${35 + ny}px`;
-  }
-
-  moveVec.x = nx / max;
-  moveVec.y = ny / max;
-}
-
-function resetStick() {
-  if (joystickStick) {
-    joystickStick.style.left = "35px";
-    joystickStick.style.top = "35px";
-  }
-  moveVec.x = 0;
-  moveVec.y = 0;
-}
-
-if (joystickBase) {
-  joystickBase.addEventListener("pointerdown", (e) => {
-    joystickActive = true;
-    const p = pointerPos(e);
-    setStick(p.x, p.y);
-  });
-}
-
-window.addEventListener("pointermove", (e) => {
-  if (!joystickActive || !joystickBase) return;
-  const p = pointerPos(e);
-  setStick(p.x, p.y);
+canvas.addEventListener("pointerdown", (ev) => {
+  setTapTargetFromEvent(ev);
 });
 
-window.addEventListener("pointerup", () => {
-  joystickActive = false;
-  resetStick();
+document.addEventListener("pointerdown", (ev) => {
+  const dialogueBox = document.getElementById("dialogue-box");
+  const qCard = document.getElementById("question-card");
+  const noteBox = notebookBox;
+
+  if (state.activeQuestion) return;
+
+  const insideDialogue = dialogueBox && dialogueBox.contains(ev.target);
+  const insideQuestion = qCard && qCard.contains(ev.target);
+  const insideNotebook = noteBox && noteBox.contains(ev.target);
+  const onButtons = interactBtn && interactBtn.contains(ev.target) || notebookBtn && notebookBtn.contains(ev.target);
+
+  if (!insideDialogue && !insideQuestion && !insideNotebook && !onButtons && state.dialogueOpen) {
+    safeText(dialogueEl, "");
+    safeText(speakerEl, "");
+    state.dialogueOpen = false;
+  }
 });
 
 setDialogue("Narrator", dialogueLines);
 safeText(notebookEl, notebookLines.join("\n\n"));
 setQuest("Talk to the Elder");
-if (notebookBox) notebookBox.classList.add("hidden");
+toggleHidden(notebookBox, true);
 gameLoop();
-
-function safeText(el, text) {
-  if (el) el.textContent = text;
-}

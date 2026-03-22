@@ -28,6 +28,7 @@ html, body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  touch-action: none;
 }
 
 #hud-top {
@@ -45,7 +46,7 @@ html, body {
 
 #chapter-chip,
 #quest-chip {
-  background: rgba(10, 15, 25, 0.86);
+  background: rgba(10, 15, 25, 0.84);
   border: 2px solid rgba(255, 216, 107, 0.35);
   border-radius: 18px;
   padding: 10px 14px;
@@ -54,33 +55,35 @@ html, body {
 }
 
 #chapter-chip {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   color: #ffd86b;
   max-width: 52%;
+  line-height: 1.25;
 }
 
 #quest-chip {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   color: #ffffff;
   max-width: 42%;
   text-align: right;
+  line-height: 1.25;
 }
 
 #hud-bottom {
   position: absolute;
   left: 10px;
   right: 10px;
-  bottom: calc(env(safe-area-inset-bottom) + 110px);
+  bottom: calc(env(safe-area-inset-bottom) + 96px);
   z-index: 11;
   pointer-events: none;
 }
 
 .comic-box {
   position: relative;
-  width: min(860px, 96vw);
-  min-height: 120px;
+  width: min(900px, 96vw);
+  min-height: 118px;
   max-height: 26dvh;
   overflow: hidden;
   background: linear-gradient(180deg, rgba(10,18,28,0.94), rgba(10,22,30,0.96));
@@ -105,18 +108,18 @@ html, body {
 }
 
 #dialogue-box {
-  padding: 14px 16px 14px 16px;
+  padding: 14px 16px;
 }
 
 #speaker {
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 900;
   color: #ffd86b;
   margin-bottom: 8px;
 }
 
 #dialogue {
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.45;
   white-space: pre-line;
   overflow-y: auto;
@@ -127,7 +130,7 @@ html, body {
 #notebook-box {
   position: absolute;
   right: 12px;
-  bottom: calc(env(safe-area-inset-bottom) + 170px);
+  bottom: calc(env(safe-area-inset-bottom) + 162px);
   width: min(360px, 90vw);
   max-height: 28dvh;
   overflow: hidden;
@@ -136,14 +139,14 @@ html, body {
 }
 
 .small-title {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 900;
   color: #ffd86b;
   margin-bottom: 8px;
 }
 
 #notebook {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.45;
   white-space: pre-line;
   overflow-y: auto;
@@ -152,7 +155,7 @@ html, body {
 
 #floating-toast {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 70px);
+  top: calc(env(safe-area-inset-top) + 64px);
   left: 50%;
   transform: translateX(-50%);
   background: rgba(14, 20, 30, 0.94);
@@ -160,7 +163,7 @@ html, body {
   border-radius: 999px;
   padding: 10px 16px;
   color: #fff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   z-index: 20;
   box-shadow: 0 12px 24px rgba(0,0,0,0.30);
@@ -290,12 +293,12 @@ html, body {
 }
 
 #joystick-wrap {
-  display: none;
+  display: none !important;
 }
 
 #hint-panel {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 60px);
+  top: calc(env(safe-area-inset-top) + 58px);
   left: 50%;
   transform: translateX(-50%);
   background: rgba(12,18,28,0.92);
@@ -307,6 +310,8 @@ html, body {
   font-weight: 800;
   z-index: 18;
   box-shadow: 0 12px 26px rgba(0,0,0,0.26);
+  max-width: 92vw;
+  text-align: center;
 }
 
 .hidden {
@@ -327,27 +332,39 @@ html, body {
   }
 
   #hud-bottom {
-    bottom: calc(env(safe-area-inset-bottom) + 108px);
+    bottom: calc(env(safe-area-inset-bottom) + 102px);
   }
 
   .comic-box {
     width: 96vw;
-    min-height: 116px;
-    max-height: 24dvh;
+    min-height: 114px;
+    max-height: 23dvh;
   }
 
   #speaker {
-    font-size: 20px;
+    font-size: 19px;
   }
 
   #dialogue {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   #notebook-box {
     right: 10px;
     left: 10px;
     width: auto;
-    bottom: calc(env(safe-area-inset-bottom) + 170px);
+    bottom: calc(env(safe-area-inset-bottom) + 164px);
+  }
+
+  #interact-btn {
+    width: 76px;
+    height: 76px;
+  }
+
+  #notebook-btn {
+    bottom: calc(env(safe-area-inset-bottom) + 104px);
+    min-width: 108px;
+    height: 44px;
+    font-size: 15px;
   }
 }
