@@ -16,6 +16,8 @@ const questionOptions = document.getElementById("question-options");
 const celebrationEl = document.getElementById("celebration");
 const interactBtn = document.getElementById("interact-btn");
 const toastEl = document.getElementById("floating-toast");
+const dialogueBox = document.getElementById("dialogue-box");
+const questionCard = document.getElementById("question-card");
 
 const W = canvas.width;
 const H = canvas.height;
@@ -81,7 +83,7 @@ const state = {
   dialogueOpen: true
 };
 
-const player = { x: 120, y: 470, w: 28, h: 40, speed: 3.1 };
+const player = { x: 120, y: 470, w: 28, h: 40, speed: 3.0 };
 const elder = { x: 610, y: 285, w: 32, h: 44, name: "Elder" };
 const apprentice = { x: 470, y: 330, w: 28, h: 38, name: "Apprentice" };
 const blacksmith = { x: 545, y: 266, w: 32, h: 44, name: "Blacksmith" };
@@ -95,7 +97,7 @@ let keys = {};
 
 let dialogueLines = [
   "Ironford's spring has turned black and corrosive.",
-  "Tap the world to move. Talk to villagers, reconstruct the lost chemistry, and save the village."
+  "Tap the world to move. Tap E near people and places. Tap outside this card to hide it."
 ];
 
 let notebookLines = [
@@ -160,6 +162,12 @@ function setDialogue(speaker, lines) {
   dialogueLines = Array.isArray(lines) ? lines : [lines];
   safeText(dialogueEl, dialogueLines.join("\n\n"));
   state.dialogueOpen = true;
+  removeHidden(dialogueBox);
+}
+
+function closeDialogue() {
+  state.dialogueOpen = false;
+  addHidden(dialogueBox);
 }
 
 function setQuest(text) {
@@ -955,21 +963,15 @@ canvas.addEventListener("pointerdown", (ev) => {
 });
 
 document.addEventListener("pointerdown", (ev) => {
-  const dialogueBox = document.getElementById("dialogue-box");
-  const qCard = document.getElementById("question-card");
-  const noteBox = notebookBox;
-
-  if (state.activeQuestion) return;
+  if (!state.dialogueOpen || state.activeQuestion) return;
 
   const insideDialogue = dialogueBox && dialogueBox.contains(ev.target);
-  const insideQuestion = qCard && qCard.contains(ev.target);
-  const insideNotebook = noteBox && noteBox.contains(ev.target);
-  const onButtons = interactBtn && interactBtn.contains(ev.target) || notebookBtn && notebookBtn.contains(ev.target);
+  const insideQuestion = questionCard && questionCard.contains(ev.target);
+  const insideNotebook = notebookBox && notebookBox.contains(ev.target);
+  const onButtons = (interactBtn && interactBtn.contains(ev.target)) || (notebookBtn && notebookBtn.contains(ev.target));
 
-  if (!insideDialogue && !insideQuestion && !insideNotebook && !onButtons && state.dialogueOpen) {
-    safeText(dialogueEl, "");
-    safeText(speakerEl, "");
-    state.dialogueOpen = false;
+  if (!insideDialogue && !insideQuestion && !insideNotebook && !onButtons) {
+    closeDialogue();
   }
 });
 
