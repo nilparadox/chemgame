@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Science World — The Black Spring of Ironford</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="game-shell">
+      <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+      <div id="hud-top">
+        <div id="chapter-chip">CHAPTER 1 · THE BLACK SPRING OF IRONFORD</div>
+        <div id="quest-chip">Talk to the Elder</div>
+      </div>
+
+      <div id="hud-bottom">
+        <div id="dialogue-box" class="comic-box">
+          <div id="speaker">Narrator</div>
+          <div id="dialogue"></div>
+        </div>
+
+        <div id="notebook-box" class="comic-box hidden">
+          <div class="small-title">Chemistry Notebook</div>
+          <div id="notebook"></div>
+        </div>
+      </div>
+
+      <div id="floating-toast" class="hidden"></div>
+
+      <div id="question-modal" class="hidden">
+        <div id="question-card">
+          <div id="question-title"></div>
+          <div id="question-subtitle"></div>
+          <div id="question-options"></div>
+        </div>
+      </div>
+
+      <div id="celebration" class="hidden">
+        <div id="celebration-card">
+          <div id="celebration-title">Village Saved!</div>
+          <div id="celebration-subtitle">
+            Ironford's spring runs clear again. Lost chemistry has become living knowledge.
+          </div>
+        </div>
+      </div>
+
+      <button id="interact-btn">E</button>
+      <button id="notebook-btn">Notebook</button>
+
+      <div id="joystick-wrap">
+        <div id="joystick-base">
+          <div id="joystick-stick"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
